@@ -22,7 +22,7 @@ def convert_to_json(ifile, ofile):
         for sentence in sentences
     ]
 
-    with open(ofile, "w") as f:
+    with open(ofile, "w", encoding="utf-8") as f:
         for sentence in jsonl:
             f.write(json.dumps(sentence, ensure_ascii=False) + "\n")
 

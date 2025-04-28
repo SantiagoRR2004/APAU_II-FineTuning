@@ -21,7 +21,7 @@ class IOB:
     def _read_sentences_from_file(self, ifile):
         raw_sentence = ""
         try:
-            with open(ifile) as fhi:
+            with open(ifile, encoding="utf-8") as fhi:
                 for line in fhi:
                     if line == "\n":
                         if raw_sentence == "":
