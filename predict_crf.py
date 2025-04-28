@@ -9,13 +9,14 @@ class IOB:
 
     def parse_file(self, ifile):
         return [
-            self._parse_sentence(raw)
-            for raw in self._read_sentences_from_file(ifile)
+            self._parse_sentence(raw) for raw in self._read_sentences_from_file(ifile)
         ]
 
     def _parse_sentence(self, raw_sentence):
         return [
-            tuple(token.split(self._sep),)
+            tuple(
+                token.split(self._sep),
+            )
             for token in raw_sentence.strip().split("\n")
         ]
 
@@ -47,33 +48,37 @@ class CRFFeatures:
         word = sent[i][0]
 
         features = {
-            'bias': 1.0,
-            'word.lower()': word.lower(),
-            'word[-3:]': word[-3:],
-            'word.isupper()': word.isupper(),
-            'word.istitle()': word.istitle(),
-            'word.isdigit()': word.isdigit(),
+            "bias": 1.0,
+            "word.lower()": word.lower(),
+            "word[-3:]": word[-3:],
+            "word.isupper()": word.isupper(),
+            "word.istitle()": word.istitle(),
+            "word.isdigit()": word.isdigit(),
         }
 
         if i > 0:
-            word1 = sent[i-1][0]
-            features.update({
-                '-1:word.lower()': word1.lower(),
-                '-1:word.istitle()': word1.istitle(),
-                '-1:word.isupper()': word1.isupper(),
-            })
+            word1 = sent[i - 1][0]
+            features.update(
+                {
+                    "-1:word.lower()": word1.lower(),
+                    "-1:word.istitle()": word1.istitle(),
+                    "-1:word.isupper()": word1.isupper(),
+                }
+            )
         else:
-            features['BOS'] = True
+            features["BOS"] = True
 
-        if i < len(sent)-1:
-            word1 = sent[i+1][0]
-            features.update({
-                '+1:word.lower()': word1.lower(),
-                '+1:word.istitle()': word1.istitle(),
-                '+1:word.isupper()': word1.isupper(),
-            })
+        if i < len(sent) - 1:
+            word1 = sent[i + 1][0]
+            features.update(
+                {
+                    "+1:word.lower()": word1.lower(),
+                    "+1:word.istitle()": word1.istitle(),
+                    "+1:word.isupper()": word1.isupper(),
+                }
+            )
         else:
-            features['EOS'] = True
+            features["EOS"] = True
 
         return features
 
@@ -88,34 +93,29 @@ def parse_args():
     description = ""
 
     parser = argparse.ArgumentParser(
-        description=description,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        '-m',
-        '--model',
-        default='crf.model',
+        "-m",
+        "--model",
+        default="crf.model",
         type=str,
-        metavar='FILE',
-        help='model file',
+        metavar="FILE",
+        help="model file",
     )
     parser.add_argument(
-        'dataset',
-        metavar='input file',
-        type=str,
-        help='dataset file (IOB2)'
+        "dataset", metavar="input file", type=str, help="dataset file (IOB2)"
     )
     return parser.parse_args()
 
 
 def predict(args):
     iob = IOB()
-    crf = pickle.load(open(args.model, 'rb'))
+    crf = pickle.load(open(args.model, "rb"))
     feats = CRFFeatures()
 
     sentences = [
-        [tuple(token) for token in sent]
-        for sent in iob.parse_file(args.dataset)
+        [tuple(token) for token in sent] for sent in iob.parse_file(args.dataset)
     ]
 
     X = [feats.sent2features(s) for s in sentences]
@@ -130,6 +130,6 @@ def predict(args):
         print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
     predict(args)

@@ -9,14 +9,12 @@ class IOB:
 
     def parse_file(self, ifile):
         return [
-            self._parse_sentence(raw)
-            for raw in self._read_sentences_from_file(ifile)
+            self._parse_sentence(raw) for raw in self._read_sentences_from_file(ifile)
         ]
 
     def _parse_sentence(self, raw_sentence):
         return [
-            tuple(token.split(self._sep))
-            for token in raw_sentence.strip().split("\n")
+            tuple(token.split(self._sep)) for token in raw_sentence.strip().split("\n")
         ]
 
     def _read_sentences_from_file(self, ifile):
@@ -43,14 +41,8 @@ class IOB:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Convert IOB format to JSON.")
-    parser.add_argument(
-        "iobfile",
-        help="Input file in IOB format"
-    )
-    parser.add_argument(
-        "jsonfile",
-        help="Output file in JSON format"
-    )
+    parser.add_argument("iobfile", help="Input file in IOB format")
+    parser.add_argument("jsonfile", help="Output file in JSON format")
     return parser.parse_args()
 
 
@@ -69,6 +61,7 @@ def convert_to_json(ifile, ofile):
     with open(ofile, "w") as f:
         for sentence in jsonl:
             f.write(json.dumps(sentence, ensure_ascii=False) + "\n")
+
 
 if __name__ == "__main__":
     args = parse_args()
