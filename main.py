@@ -1,6 +1,7 @@
 import os
 import IOB
-from predict_crf import CRFFeatures
+import predict_crf
+from types import SimpleNamespace
 from typing import List, Tuple
 
 
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     originalFile = os.path.join(currentDir, "data", "ner-es.trainOld.csv")
 
     iob = IOB.IOB()
-    feats = CRFFeatures()
+    feats = predict_crf.CRFFeatures()
 
     sentences = iob.parse_file(originalFile)
 
@@ -103,5 +104,25 @@ if __name__ == "__main__":
 
     # Divide the sentences into two parts
     withLabels, unlabeled = divideSentences(sentences)
+    nLabels = len(withLabels)
 
     saveFile(unlabeled, os.path.join(currentDir, "data", "unlabeled.csv"))
+
+    # We make sure that the labelOptions folder exists
+    os.makedirs(os.path.join(currentDir, "data", "labelOptions"), exist_ok=True)
+
+    # Use the CRF model to predict labels for the unlabeled sentences
+    cfrSentences = predict_crf.predict(
+        SimpleNamespace(
+            **{
+                "model": os.path.join(currentDir, "crf.es.model"),
+                "dataset": originalFile,
+            }
+        )
+    )
+
+    # Save the unlabeled part
+    saveFile(
+        cfrSentences[nLabels:],
+        os.path.join(currentDir, "data", "labelOptions", "cfr.csv"),
+    )
