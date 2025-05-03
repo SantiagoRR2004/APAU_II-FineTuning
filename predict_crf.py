@@ -81,12 +81,29 @@ def predict(args) -> List[List[Tuple[str, str]]]:
         - List[List[Tuple[str, str]]]: A list of sentences, where each sentence is a list of tuples.
     """
     iob = IOB.IOB()
-    crf = pickle.load(open(args.model, "rb"))
-    feats = CRFFeatures()
 
     sentences = [
         [tuple(token) for token in sent] for sent in iob.parse_file(args.dataset)
     ]
+
+    return predictWithSentences(sentences, args.model)
+
+
+def predictWithSentences(
+    sentences: List[List[Tuple[str, str]]], model: str
+) -> List[List[Tuple[str, str]]]:
+    """
+    Predict the labels for the tokens in the given sentences using a trained CRF model.
+
+    Args:
+        - sentences (List[List[Tuple[str, str]]]): A list of sentences, where each sentence is a list of tuples.
+        - model (str): The path to the trained CRF model file.
+
+    Returns:
+        - List[List[Tuple[str, str]]]: A list of sentences, where each sentence is a list of tuples.
+    """
+    crf = pickle.load(open(model, "rb"))
+    feats = CRFFeatures()
 
     X = [feats.sent2features(s) for s in sentences]
     y_pred = crf.predict(X)

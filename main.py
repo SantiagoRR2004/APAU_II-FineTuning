@@ -1,7 +1,6 @@
 import os
 import IOB
 import predict_crf
-from types import SimpleNamespace
 from typing import List, Tuple
 
 
@@ -112,13 +111,8 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(currentDir, "data", "labelOptions"), exist_ok=True)
 
     # Use the CRF model to predict labels for the unlabeled sentences
-    cfrSentences = predict_crf.predict(
-        SimpleNamespace(
-            **{
-                "model": os.path.join(currentDir, "crf.es.model"),
-                "dataset": originalFile,
-            }
-        )
+    cfrSentences = predict_crf.predictWithSentences(
+        sentences=sentences, model=os.path.join(currentDir, "crf.es.model")
     )
 
     # Save the unlabeled part
