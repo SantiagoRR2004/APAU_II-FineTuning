@@ -2,6 +2,7 @@ import os
 import IOB
 import predict_crf
 from typing import List, Tuple
+import labelPropagation
 
 
 def printPercentages(sentences: List[List[Tuple[str, str]]]) -> None:
@@ -107,16 +108,5 @@ if __name__ == "__main__":
 
     saveFile(unlabeled, os.path.join(currentDir, "data", "unlabeled.csv"))
 
-    # We make sure that the labelOptions folder exists
-    os.makedirs(os.path.join(currentDir, "data", "labelOptions"), exist_ok=True)
-
-    # Use the CRF model to predict labels for the unlabeled sentences
-    cfrSentences = predict_crf.predictWithSentences(
-        sentences=sentences, model=os.path.join(currentDir, "crf.es.model")
-    )
-
-    # Save the unlabeled part
-    saveFile(
-        cfrSentences[nLabels:],
-        os.path.join(currentDir, "data", "labelOptions", "cfr.csv"),
-    )
+    # All label options
+    labelPropagation.labelingOptions(sentences, nLabels)
