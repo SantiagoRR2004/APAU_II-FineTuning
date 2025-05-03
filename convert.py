@@ -2,11 +2,13 @@ import argparse
 import json
 import IOB
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Convert IOB format to JSONL.")
     parser.add_argument("iobfile", help="Input file in IOB format")
     parser.add_argument("jsonfile", help="Output file in JSONL format")
     return parser.parse_args()
+
 
 def convert_to_json(ifile, ofile):
     iob = IOB.IOB()
@@ -33,6 +35,7 @@ def convert_to_json(ifile, ofile):
             f.write(json.dumps(sentence, ensure_ascii=False) + "\n")
 
     print(f"\n✅ Conversión terminada. Se detectaron {errors} errores de formato.\n")
+
 
 if __name__ == "__main__":
     args = parse_args()
