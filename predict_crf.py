@@ -1,6 +1,7 @@
 import argparse
 import pickle
 import IOB
+from typing import List, Tuple
 
 
 class CRFFeatures:
@@ -69,7 +70,16 @@ def parse_args():
     return parser.parse_args()
 
 
-def predict(args):
+def predict(args) -> List[List[Tuple[str, str]]]:
+    """
+    Predict the labels for the tokens in the given dataset using a trained CRF model.
+
+    Args:
+        - args (argparse.Namespace): Command line arguments containing the model file and dataset file.
+
+    Returns:
+        - List[List[Tuple[str, str]]]: A list of sentences, where each sentence is a list of tuples.
+    """
     iob = IOB.IOB()
     crf = pickle.load(open(args.model, "rb"))
     feats = CRFFeatures()
@@ -81,15 +91,28 @@ def predict(args):
     X = [feats.sent2features(s) for s in sentences]
     y_pred = crf.predict(X)
 
+    toret = []
+
     for i, sentence in enumerate(sentences):
+        currentSentence = []
         for j, token in enumerate(sentence):
             if len(token) > 1:
-                print("{} {}".format(token[0], token[1]))
+                currentSentence.append((token[0], token[1]))
             else:
-                print("{} {}".format(token[0], y_pred[i][j]))
-        print()
+                currentSentence.append((token[0], y_pred[i][j]))
+
+        toret.append(currentSentence)
+
+    return toret
 
 
 if __name__ == "__main__":
     args = parse_args()
-    predict(args)
+    sentences = predict(args)
+
+    print(
+        "\n\n".join(
+            ["\n".join([f"{token[0]} {token[1]}" for token in s]) for s in sentences]
+        ),
+        end="\n\n",
+    )
