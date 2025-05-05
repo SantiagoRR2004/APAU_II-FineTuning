@@ -76,7 +76,7 @@ def labelSpacy(sentences: List[List[Tuple[str, str]]], nLabels: int) -> None:
 
     labeledSentences = []
 
-    for sentence in sentences[-nLabels:]:
+    for sentence in sentences[nLabels:]:
         doc = nlp(" ".join([token[0] for token in sentence]))
         labeledSentences.append(
             [
