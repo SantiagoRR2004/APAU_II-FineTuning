@@ -3,6 +3,7 @@ import predict_crf
 import main
 from typing import List, Tuple
 import spacy
+import tqdm
 
 
 def labelingOptions(sentences: List[List[Tuple[str, str]]], nLabels: int) -> None:
@@ -76,7 +77,9 @@ def labelSpacy(sentences: List[List[Tuple[str, str]]], nLabels: int) -> None:
 
     labeledSentences = []
 
-    for sentence in sentences[nLabels:]:
+    for sentence in tqdm.tqdm(
+        sentences[nLabels:], desc="Labeling sentences with Spacy"
+    ):
         doc = nlp(" ".join([token[0] for token in sentence]))
         labeledSentences.append(
             [
