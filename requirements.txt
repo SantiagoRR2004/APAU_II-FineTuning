@@ -14,3 +14,4 @@ threadpoolctl
 torch
 tqdm
 transformers
+spacy
