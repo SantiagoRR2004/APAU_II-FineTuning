@@ -1,6 +1,5 @@
 import os
 import IOB
-import predict_crf
 from typing import List, Tuple
 import labelPropagation
 
@@ -86,7 +85,7 @@ def saveFile(sentences: List[List[Tuple[str, str]]], filename: str) -> None:
     with open(filename, "w") as f:
         for sentence in sentences:
             for token in sentence:
-                f.write("\t".join(token) + "\n")
+                f.write(" ".join(token) + "\n")
             f.write("\n")
 
 
@@ -96,7 +95,6 @@ if __name__ == "__main__":
     originalFile = os.path.join(currentDir, "data", "ner-es.trainOld.csv")
 
     iob = IOB.IOB()
-    feats = predict_crf.CRFFeatures()
 
     sentences = iob.parse_file(originalFile)
 
