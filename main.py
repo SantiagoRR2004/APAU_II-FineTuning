@@ -108,3 +108,11 @@ if __name__ == "__main__":
 
     # All label options
     labelPropagation.labelingOptions(sentences, nLabels)
+
+    # Get the consensus labels
+    consensus = labelPropagation.getConsensus()
+
+    # Save the fully labeled sentences
+    saveFile(
+        withLabels + consensus, os.path.join(currentDir, "data", "ner-es.train.csv")
+    )
