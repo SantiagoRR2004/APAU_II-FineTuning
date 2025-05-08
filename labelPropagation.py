@@ -133,22 +133,79 @@ def getConsensus() -> List[List[Tuple[str, str]]]:
     nAccordance = 0
     nTokens = sum([len(sentence) for sentence in emptySentences])
 
-    for i in range(len(emptySentences)):
-        for j in range(len(emptySentences[i])):
+    for nSentence in range(len(emptySentences)):
 
-            tokenOptions = [f[i][j][1] for f in files.values()]
+        # Returns the number of labels that are equal
+        nEqualLabels = sum(
+            [
+                len(set(f[nSentence][nw][1] for f in files.values())) == 1
+                for nw in range(len(emptySentences[nSentence]))
+            ]
+        )
 
-            # Check if all labels are the same
-            if len(set(tokenOptions)) == 1:
-                emptySentences[i][j] = (emptySentences[i][j][0], tokenOptions[0])
-                nAccordance += 1
-            else:
-                # If not, we randomly choose one of the labels
-                emptySentences[i][j] = (
-                    emptySentences[i][j][0],
-                    random.choice(tokenOptions),
-                )
+        nAccordance += nEqualLabels
+
+        if nEqualLabels == len(emptySentences[nSentence]):
+            # If all labels are the same, we can fill them with one
+            emptySentences[nSentence] = list(files.values())[0][nSentence].copy()
+
+        else:
+            # If not, we use the solver
+            emptySentences[nSentence] = solveConflicts(
+                emptySentences[nSentence],
+                [f[nSentence] for f in files.values()],
+            )
 
     print(f"Percentage of unanimous labels: {nAccordance / nTokens * 100:.2f}%")
 
     return emptySentences
+
+
+def solveConflicts(
+    emptySentece: List[Tuple[str, str]], possibilities: List[List[Tuple[str, str]]]
+) -> List[Tuple[str, str]]:
+    """
+    Solve the conflicts in the labels of the tokens.
+
+    Args:
+        - emptySentece (List[Tuple[str, str]]): A list of tuples representing the tokens and Nones.
+        - possibilities (List[List[Tuple[str, str]]]): A list of lists of tuples representing the possible labels for each token.
+
+    Returns:
+        - List[Tuple[str, str]]: A list of tuples representing the tokens and their labels.
+    """
+    nToken = 0
+
+    while nToken < len(emptySentece):
+
+        tokenOptions = [option[nToken][1] for option in possibilities]
+
+        if len(set(tokenOptions)) == 1:
+            emptySentece[nToken] = (emptySentece[nToken][0], tokenOptions[0])
+            nToken += 1
+        else:
+            # If not, we randomly choose one of the lists
+            nList = random.randint(0, len(possibilities) - 1)
+
+            token = possibilities[nList][nToken][1]
+
+            # If it is a basic token we only fill with that one
+            if token == "O":
+                emptySentece[nToken] = (emptySentece[nToken][0], token)
+                nToken += 1
+
+            else:
+                # If it is a beggining we put it
+                if token.startswith("B-"):
+                    emptySentece[nToken] = (emptySentece[nToken][0], token)
+                    nToken += 1
+
+                # We continue until it isn't a I- token
+                while (
+                    nToken < len(emptySentece)
+                    and possibilities[nList][nToken][1] == "I-" + token[2:]
+                ):
+                    emptySentece[nToken] = (emptySentece[nToken][0], "I-" + token[2:])
+                    nToken += 1
+
+    return emptySentece
