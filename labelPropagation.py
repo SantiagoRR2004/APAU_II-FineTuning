@@ -2,6 +2,7 @@ import os
 import predict_crf
 import main
 from typing import List, Tuple
+from spacy.tokens import Doc
 import spacy
 import tqdm
 
@@ -80,14 +81,18 @@ def labelSpacy(sentences: List[List[Tuple[str, str]]], nLabels: int) -> None:
     for sentence in tqdm.tqdm(
         sentences[nLabels:], desc="Labeling sentences with Spacy"
     ):
-        doc = nlp(" ".join([token[0] for token in sentence]))
+        tokens = [token[0] for token in sentence]
+
+        # Create a Doc object from pre-tokenized words
+        doc = Doc(nlp.vocab, words=tokens)
+
         labeledSentences.append(
             [
                 (
                     token.text,
                     f"{token.ent_iob_}{'-' if token.ent_type_ else ''}{token.ent_type_}",
                 )
-                for token in doc
+                for token in nlp.get_pipe("ner")(doc)
             ]
         )
 
