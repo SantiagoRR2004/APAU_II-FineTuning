@@ -2,6 +2,7 @@ import os
 import IOB
 from typing import List, Tuple
 import labelPropagation
+from convert import convert_to_json
 
 
 def printPercentages(sentences: List[List[Tuple[str, str]]]) -> None:
@@ -114,12 +115,24 @@ def process_file(file_path: str, output_path_prefix: str) -> None:
 if __name__ == "__main__":
     currentDir = os.path.dirname(os.path.abspath(__file__))
 
+    train_csv = os.path.join(currentDir, "data", "ner-es.train.csv")
+    valid_csv = os.path.join(currentDir, "data", "ner-es.valid.csv")
+    train_json = os.path.join(currentDir, "data", "ner-es.train.json")
+    valid_json = os.path.join(currentDir, "data", "ner-es.valid.json")
+
+    # Procesar archivos CSV (anotar etiquetas)
     process_file(
         os.path.join(currentDir, "data", "ner-es.trainOld.csv"),
-        os.path.join(currentDir, "data", "ner-es.train"),
+        train_csv[:-4]  # quita .csv para usar como prefijo
     )
+
+    # Convertir a JSONL
+    convert_to_json(train_csv, train_json)
 
     process_file(
         os.path.join(currentDir, "data", "ner-es.validOld.csv"),
-        os.path.join(currentDir, "data", "ner-es.valid"),
+        valid_csv[:-4]
     )
+
+    # Convertir a JSONL
+    convert_to_json(valid_csv, valid_json)

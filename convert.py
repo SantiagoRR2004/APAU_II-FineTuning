@@ -25,7 +25,7 @@ def convert_to_json(ifile, ofile):
                 tokens.append(token[0])
                 labels.append(token[1])
             else:
-                print(f"⚠️ Error en la frase {idx + 1}: token mal formado {token}")
+                print(f"Error en la frase {idx + 1}: token mal formado {token}")
                 errors += 1
         if tokens:  # Solo guardamos frases no vacías
             jsonl.append({"tokens": tokens, "labels": labels})
@@ -34,7 +34,7 @@ def convert_to_json(ifile, ofile):
         for sentence in jsonl:
             f.write(json.dumps(sentence, ensure_ascii=False) + "\n")
 
-    print(f"\n✅ Conversión terminada. Se detectaron {errors} errores de formato.\n")
+    print(f"\nConversión terminada. Se detectaron {errors} errores de formato.\n")
 
 
 if __name__ == "__main__":
