@@ -7,6 +7,7 @@ import spacy
 import tqdm
 import IOB
 import random
+import re
 
 
 def labelingOptions(sentences: List[List[Tuple[str, str]]], nLabels: int) -> None:
@@ -263,3 +264,83 @@ def getEntityEnd(position: int, sentence: List[Tuple[str, str]]) -> int:
             position += 1
 
     return position
+
+
+def checkWithRegex(
+    newLabels: List[List[Tuple[str, str]]], original: List[List[Tuple[str, str]]]
+) -> None:
+    """
+    Check the new labels with the original labels using regex.
+
+    This just prints statistics about the labels.
+
+    Args:
+        - newLabels (List[List[Tuple[str, str]]]): A list of sentences with the new labels.
+        - original (List[List[Tuple[str, str]]]): A list of sentences with the original labels.
+
+    Returns:
+        - None
+    """
+    originalText = "\n".join(
+        [
+            " ".join([f"{token[0]} {token[1]}" for token in sentence])
+            for sentence in original
+        ]
+    )
+
+    nSequencesTotal = 0
+    nSequencesNotInOriginal = 0
+    nSequencesOrgininalSame = 0
+    nSequencesOrgininalDiff = 0
+
+    for sentence in newLabels:
+
+        # We try to find sequences
+        nToken = 0
+
+        while nToken < len(sentence):
+
+            if sentence[nToken][1] == "O":
+                nToken += 1
+
+            else:
+                end = getEntityEnd(nToken, sentence)
+                nSequencesTotal += 1
+
+                sequence = [
+                    re.escape(token[0]) + r"\s+\S+" for token in sentence[nToken:end]
+                ]
+                pattern = r"\b" + r"\s+".join(sequence) + r"\b"
+
+                # We use re
+                regex = re.compile(pattern)
+                match = regex.search(originalText)
+
+                if match:
+                    matchedText = match.group(0).split()
+                    labelsOriginal = matchedText[
+                        1::2
+                    ]  # Eextract every second element (the labels)
+
+                    # We check if the labels are the same
+                    if labelsOriginal == [sentence[i][1] for i in range(nToken, end)]:
+                        nSequencesOrgininalSame += 1
+                    else:
+                        nSequencesOrgininalDiff += 1
+
+                # We don't find the sequence
+                else:
+                    nSequencesNotInOriginal += 1
+
+                nToken = end + 1
+
+    print(f"In the propagation {nSequencesTotal} sequences were found:")
+    print(
+        f"\t{100*nSequencesNotInOriginal/nSequencesTotal:.2f}% are not in the original."
+    )
+    print(
+        f"\t{100*nSequencesOrgininalSame/nSequencesTotal:.2f}% are the same as the original."
+    )
+    print(
+        f"\t{100*nSequencesOrgininalDiff/nSequencesTotal:.2f}% have different labels from the original."
+    )
