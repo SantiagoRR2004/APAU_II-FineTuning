@@ -105,7 +105,7 @@ def labelSpacy(sentences: List[List[Tuple[str, str]]], nLabels: int) -> None:
     )
 
 
-def getConsensus() -> List[List[Tuple[str, str]]]:
+def getConsensus(human: bool = False) -> List[List[Tuple[str, str]]]:
     """
     Get the consensus labels from the labeling options.
     The function reads the labeling options from the labelOptions folder
@@ -113,7 +113,7 @@ def getConsensus() -> List[List[Tuple[str, str]]]:
     If they are not it randomly chooses one of the labels.
 
     Args:
-        - None
+        - human (bool): If True, the user will be asked to choose the option.
 
     Returns:
         - List[List[Tuple[str, str]]]: A list of sentences, where each sentence is a list of tuples.
@@ -155,6 +155,7 @@ def getConsensus() -> List[List[Tuple[str, str]]]:
             emptySentences[nSentence] = solveConflicts(
                 emptySentences[nSentence],
                 [f[nSentence] for f in files.values()],
+                human=human,
             )
 
     print(f"Percentage of unanimous labels: {nAccordance / nTokens * 100:.2f}%")
@@ -163,7 +164,9 @@ def getConsensus() -> List[List[Tuple[str, str]]]:
 
 
 def solveConflicts(
-    emptySentece: List[Tuple[str, str]], possibilities: List[List[Tuple[str, str]]]
+    emptySentece: List[Tuple[str, str]],
+    possibilities: List[List[Tuple[str, str]]],
+    human: bool = False,
 ) -> List[Tuple[str, str]]:
     """
     Solve the conflicts in the labels of the tokens.
@@ -189,6 +192,7 @@ def solveConflicts(
     Args:
         - emptySentece (List[Tuple[str, str]]): A list of tuples representing the tokens and Nones.
         - possibilities (List[List[Tuple[str, str]]]): A list of lists of tuples representing the possible labels for each token.
+        - human (bool): If True, the user will be asked to choose the option.
 
     Returns:
         - List[Tuple[str, str]]: A list of tuples representing the tokens and their labels.
@@ -214,7 +218,17 @@ def solveConflicts(
         else:
             # If not, we randomly choose one of the lists
             available = [i for i, taken in enumerate(occupied) if not taken]
-            nList = random.choice(available)
+
+            if human and len(available) > 1:
+                random.shuffle(available)
+                nList = available[
+                    humanChoice(
+                        [possibilities[i] for i in available],
+                        nToken,
+                    )
+                ]
+            else:
+                nList = random.choice(available)
 
             # We explore the entire entity
             while entityFinalPosition[nList] >= nToken:
@@ -234,6 +248,25 @@ def solveConflicts(
             occupied[nList] = False
 
     return emptySentece
+
+
+def humanChoice(possibilities: List[List[Tuple[str, str]]], nToken: int) -> int:
+    print(f"\n\n")
+    print(
+        f"{" ".join([i[0] for i in possibilities[0][:nToken]])} ||| {" ".join([i[0] for i in possibilities[0][nToken:]])}"
+    )
+    for i, possibility in enumerate(possibilities):
+        print(f"Option {i}:\t", end="")
+        print(
+            f"{" ".join([i[1] for i in possibility[:nToken]])} ||| {" ".join([i[1] for i in possibility[nToken:]])}"
+        )
+    while True:
+        try:
+            toret = int(input("Choose the option: "))
+            if toret >= 0 and toret < len(possibilities):
+                return toret
+        except Exception as e:
+            pass
 
 
 def getEntityEnd(position: int, sentence: List[Tuple[str, str]]) -> int:
