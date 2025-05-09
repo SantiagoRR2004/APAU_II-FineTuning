@@ -82,40 +82,48 @@ def saveFile(sentences: List[List[Tuple[str, str]]], filename: str) -> None:
     Returns:
         - None
     """
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         for sentence in sentences:
             for token in sentence:
                 f.write(" ".join(token) + "\n")
             f.write("\n")
 
 
+
+def process_file(file_path: str, output_path_prefix: str) -> None:
+    iob = IOB.IOB()
+    sentences = iob.parse_file(file_path)
+
+    print(f"\n--- Procesando {file_path} ---\n")
+    printPercentages(sentences)
+
+    withLabels, unlabeled = divideSentences(sentences)
+    saveFile(unlabeled, f"{output_path_prefix}_unlabeled.csv")
+
+    if not unlabeled:
+        print("Todos los tokens ya están etiquetados. No se aplica propagación.")
+        saveFile(withLabels, f"{output_path_prefix}.csv")
+        return
+
+    labelPropagation.labelingOptions(sentences, len(withLabels))
+    consensus = labelPropagation.getConsensus()
+
+    saveFile(withLabels + consensus, f"{output_path_prefix}.csv")
+    labelPropagation.checkWithRegex(consensus, withLabels)
+
+
+
+
 if __name__ == "__main__":
     currentDir = os.path.dirname(os.path.abspath(__file__))
 
-    originalFile = os.path.join(currentDir, "data", "ner-es.trainOld.csv")
-
-    iob = IOB.IOB()
-
-    sentences = iob.parse_file(originalFile)
-
-    printPercentages(sentences)
-
-    # Divide the sentences into two parts
-    withLabels, unlabeled = divideSentences(sentences)
-    nLabels = len(withLabels)
-
-    saveFile(unlabeled, os.path.join(currentDir, "data", "unlabeled.csv"))
-
-    # All label options
-    labelPropagation.labelingOptions(sentences, nLabels)
-
-    # Get the consensus labels
-    consensus = labelPropagation.getConsensus()
-
-    # Save the fully labeled sentences
-    saveFile(
-        withLabels + consensus, os.path.join(currentDir, "data", "ner-es.train.csv")
+    process_file(
+        os.path.join(currentDir, "data", "ner-es.trainOld.csv"),
+        os.path.join(currentDir, "data", "ner-es.train")
     )
 
-    # Show statistics with regex
-    labelPropagation.checkWithRegex(consensus, withLabels)
+    process_file(
+        os.path.join(currentDir, "data", "ner-es.validOld.csv"),
+        os.path.join(currentDir, "data", "ner-es.valid")
+    )
+

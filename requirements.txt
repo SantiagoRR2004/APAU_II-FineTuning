@@ -15,3 +15,5 @@ torch
 tqdm
 transformers
 spacy
+chardet
+matplotlib
