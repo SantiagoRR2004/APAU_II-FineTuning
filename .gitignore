@@ -1,2 +1,7 @@
 .venv/
 __pycache__
+*.csv
+
+# Include ner-es.trainOld.csv and ner-es.valid.csv
+!ner-es.trainOld.csv
+!ner-es.valid.csv
