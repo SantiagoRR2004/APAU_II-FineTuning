@@ -167,6 +167,24 @@ def solveConflicts(
     """
     Solve the conflicts in the labels of the tokens.
 
+    The occupied list needs more explanation:
+    When there is a difference we choose to continue
+    with one entity until it ends. If the there is
+    a difference in the next token, we have to make sure
+    that it is not in the middle of another entity.
+
+    Example:
+        B-LOC I-LOC O
+        B-ORG I-ORG I-ORG
+
+    If we choose the first one, we have:
+        B-LOC I-LOC
+
+    Now we can't use the second one,
+    because it is in the middle of another entity,
+    so we have to block it. Result:
+        B-LOC I-LOC O
+
     Args:
         - emptySentece (List[Tuple[str, str]]): A list of tuples representing the tokens and Nones.
         - possibilities (List[List[Tuple[str, str]]]): A list of lists of tuples representing the possible labels for each token.
@@ -180,6 +198,7 @@ def solveConflicts(
 
     while nToken < len(emptySentece):
 
+        # Check if the entity has finished
         for i in range(len(possibilities)):
             if entityFinalPosition[i] < nToken:
                 entityFinalPosition[i] = getEntityEnd(nToken, possibilities[i])
@@ -196,6 +215,7 @@ def solveConflicts(
             available = [i for i, taken in enumerate(occupied) if not taken]
             nList = random.choice(available)
 
+            # We explore the entire entity
             while entityFinalPosition[nList] >= nToken:
                 emptySentece[nToken] = (
                     emptySentece[nToken][0],
