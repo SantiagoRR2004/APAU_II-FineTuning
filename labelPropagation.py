@@ -175,38 +175,42 @@ def solveConflicts(
         - List[Tuple[str, str]]: A list of tuples representing the tokens and their labels.
     """
     nToken = 0
+    occupied = [False] * len(possibilities)
+    entityFinalPosition = [-1] * len(possibilities)
 
     while nToken < len(emptySentece):
+
+        for i in range(len(possibilities)):
+            if entityFinalPosition[i] < nToken:
+                entityFinalPosition[i] = getEntityEnd(nToken, possibilities[i])
+                occupied[i] = False
 
         tokenOptions = [option[nToken][1] for option in possibilities]
 
         if len(set(tokenOptions)) == 1:
+            # If all are equal, just choose one of them
             emptySentece[nToken] = (emptySentece[nToken][0], tokenOptions[0])
             nToken += 1
         else:
             # If not, we randomly choose one of the lists
-            nList = random.randint(0, len(possibilities) - 1)
+            available = [i for i, taken in enumerate(occupied) if not taken]
+            nList = random.choice(available)
 
-            token = possibilities[nList][nToken][1]
+            while entityFinalPosition[nList] >= nToken:
+                emptySentece[nToken] = (
+                    emptySentece[nToken][0],
+                    possibilities[nList][nToken][1],
+                )
 
-            # If it is a basic token we only fill with that one
-            if token == "O":
-                emptySentece[nToken] = (emptySentece[nToken][0], token)
+                for i in range(len(possibilities)):
+                    if entityFinalPosition[i] < nToken:
+                        entityFinalPosition[i] = getEntityEnd(nToken, possibilities[i])
+
                 nToken += 1
 
-            else:
-                # If it is a beggining we put it
-                if token.startswith("B-"):
-                    emptySentece[nToken] = (emptySentece[nToken][0], token)
-                    nToken += 1
-
-                # We continue until it isn't a I- token
-                while (
-                    nToken < len(emptySentece)
-                    and possibilities[nList][nToken][1] == "I-" + token[2:]
-                ):
-                    emptySentece[nToken] = (emptySentece[nToken][0], "I-" + token[2:])
-                    nToken += 1
+            # We block all that are not nList
+            occupied = [True] * len(possibilities)
+            occupied[nList] = False
 
     return emptySentece
 
