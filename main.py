@@ -116,3 +116,6 @@ if __name__ == "__main__":
     saveFile(
         withLabels + consensus, os.path.join(currentDir, "data", "ner-es.train.csv")
     )
+
+    # Show statistics with regex
+    labelPropagation.checkWithRegex(consensus, withLabels)
