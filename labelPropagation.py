@@ -209,3 +209,33 @@ def solveConflicts(
                     nToken += 1
 
     return emptySentece
+
+
+def getEntityEnd(position: int, sentence: List[Tuple[str, str]]) -> int:
+    """
+    Get the end position of the entity in the sentence.
+
+    The index starts at 0.
+
+    Args:
+        - position (int): The start position of the entity.
+        - sentence (List[Tuple[str, str]]): A list of tuples representing the tokens and their labels.
+
+    Returns:
+        - int: The end position of the entity.
+    """
+    if sentence[position][1] == "O":
+        return position
+    else:
+        # If it is a beggining we put it
+        if sentence[position][1].startswith("B-"):
+            position += 1
+
+        # We continue until it isn't a I- token
+        while (
+            position < len(sentence)
+            and sentence[position][1] == "I-" + sentence[position - 1][1][2:]
+        ):
+            position += 1
+
+    return position
