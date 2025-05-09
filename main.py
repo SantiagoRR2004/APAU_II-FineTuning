@@ -89,7 +89,6 @@ def saveFile(sentences: List[List[Tuple[str, str]]], filename: str) -> None:
             f.write("\n")
 
 
-
 def process_file(file_path: str, output_path_prefix: str) -> None:
     iob = IOB.IOB()
     sentences = iob.parse_file(file_path)
@@ -112,18 +111,15 @@ def process_file(file_path: str, output_path_prefix: str) -> None:
     labelPropagation.checkWithRegex(consensus, withLabels)
 
 
-
-
 if __name__ == "__main__":
     currentDir = os.path.dirname(os.path.abspath(__file__))
 
     process_file(
         os.path.join(currentDir, "data", "ner-es.trainOld.csv"),
-        os.path.join(currentDir, "data", "ner-es.train")
+        os.path.join(currentDir, "data", "ner-es.train"),
     )
 
     process_file(
         os.path.join(currentDir, "data", "ner-es.validOld.csv"),
-        os.path.join(currentDir, "data", "ner-es.valid")
+        os.path.join(currentDir, "data", "ner-es.valid"),
     )
-
