@@ -314,18 +314,25 @@ def checkWithRegex(
 
                 # We use re
                 regex = re.compile(pattern)
-                match = regex.search(originalText)
+                match = list(regex.finditer(originalText))
 
                 if match:
-                    matchedText = match.group(0).split()
-                    labelsOriginal = matchedText[
-                        1::2
-                    ]  # Eextract every second element (the labels)
+                    foundSame = False
+                    for m in match:
+                        matchedText = m.group(0).split()
+                        labelsOriginal = matchedText[
+                            1::2
+                        ]  # Eextract every second element (the labels)
 
-                    # We check if the labels are the same
-                    if labelsOriginal == [sentence[i][1] for i in range(nToken, end)]:
-                        nSequencesOrgininalSame += 1
-                    else:
+                        # We check if the labels are the same
+                        if labelsOriginal == [
+                            sentence[i][1] for i in range(nToken, end)
+                        ]:
+                            nSequencesOrgininalSame += 1
+                            foundSame = True
+                            break
+
+                    if not foundSame:
                         nSequencesOrgininalDiff += 1
 
                 # We don't find the sequence
