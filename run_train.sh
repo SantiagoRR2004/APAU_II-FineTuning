@@ -5,7 +5,7 @@ MODEL=$1
 ##### defs ################################################################
 MAX_LENGTH=128
 BATCH_SIZE=32
-NUM_EPOCHS=10
+NUM_EPOCHS=1
 SAVE_STEPS=100
 SAVE_TOTAL_LIMIT=2
 LOGGING_STEPS=100
@@ -44,4 +44,5 @@ time python3 run_ner.py \
   --overwrite_output_dir \
   --load_best_model_at_end \
   --save_strategy ${SAVE_STRATEGY} \
-  --return_entity_level_metrics True
+  --return_entity_level_metrics True \
+  --overwrite_cache

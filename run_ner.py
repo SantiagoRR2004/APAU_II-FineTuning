@@ -350,6 +350,7 @@ def main():
             cache_dir=model_args.cache_dir,
             token=model_args.token,
             trust_remote_code=model_args.trust_remote_code,
+            encoding="utf-8",
         )
     else:
         data_files = {}
@@ -363,7 +364,7 @@ def main():
             data_files["test"] = data_args.test_file
             extension = data_args.test_file.split(".")[-1]
         raw_datasets = load_dataset(
-            extension, data_files=data_files, cache_dir=model_args.cache_dir
+            extension, data_files=data_files, cache_dir=model_args.cache_dir, encoding="utf-8"
         )
     # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
     # https://huggingface.co/docs/datasets/loading_datasets.
