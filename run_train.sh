@@ -5,12 +5,13 @@ MODEL=$1
 ##### defs ################################################################
 MAX_LENGTH=128
 BATCH_SIZE=32
-NUM_EPOCHS=1
+NUM_EPOCHS=10
 SAVE_STEPS=100
 SAVE_TOTAL_LIMIT=2
 LOGGING_STEPS=100
 LOAD_BEST_MODEL_AT_END=True
-SAVE_STRATEGY="epoch"   # Punto de guardado
+SAVE_STRATEGY='epoch'   # Punto de guardado
+EVAL_STRATEGY='epoch'
 TRAIN_FILE="data/ner-es.train.json"
 VALIDATION_FILE="data/ner-es.valid.json"
 ###########################################################################
@@ -37,9 +38,10 @@ time python3 run_ner.py \
   --logging_steps ${LOGGING_STEPS} \
   --do_train \
   --do_eval \
-  --metric_for_best_model eval_f1 \
+  --metric_for_best_model eval_overall_f1 \
   --greater_is_better True \
+  --eval_strategy ${EVAL_STRATEGY} \
   --overwrite_output_dir \
-  --load_best_model_at_end ${LOAD_BEST_MODEL_AT_END} \
+  --load_best_model_at_end \
   --save_strategy ${SAVE_STRATEGY} \
   --return_entity_level_metrics True
