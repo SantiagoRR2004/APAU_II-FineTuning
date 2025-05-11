@@ -8,7 +8,7 @@ from seqeval.metrics import (
     classification_report as seqeval_classification_report
 )
 
-from predict_crf import predictWithSentences, CRFFeatures
+from predict_crf import predictWithSentences
 import IOB
 
 
@@ -18,22 +18,20 @@ crf_model_path = "crf.es.model"
 save_report_path = "evaluation_report.txt"
 hf_model_dir = "models/roberta-base-bne-ner"
 
-
 # --- Leer dataset CSV IOB2 ---
 def load_iob_csv(path):
     iob = IOB.IOB()
     raw_sentences = iob.parse_file(path)
+    tokens = [[tok[0] for tok in sent] for sent in raw_sentences]
+    labels = [[tok[1] if len(tok) > 1 else "O" for tok in sent] for sent in raw_sentences]
+    return tokens, labels
 
-    tokenized = [[(tok[0], tok[1]) if len(tok) > 1 else (tok[0], "O") for tok in sent] for sent in raw_sentences]
-    tokens = [[tok for tok, _ in sent] for sent in tokenized]
-    labels = [[label for _, label in sent] for sent in tokenized]
-    return tokenized, tokens, labels
-
-
-tokenized_sentences, tokens_list, true_labels = load_iob_csv(csv_path)
+tokens_list, true_labels = load_iob_csv(csv_path)
 
 # --- CRF Predictions ---
-crf_preds_tuples = predictWithSentences(tokenized_sentences, crf_model_path)
+# Convertimos tokens a estructura [(token,), (token,), ...] para evitar etiquetas preexistentes
+crf_input = [[(token,) for token in sentence] for sentence in tokens_list]
+crf_preds_tuples = predictWithSentences(crf_input, crf_model_path)
 pred_labels_crf = [[label for _, label in sent] for sent in crf_preds_tuples]
 
 # --- Hugging Face fine-tuned model ---
