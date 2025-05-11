@@ -49,7 +49,7 @@ for tokens in tokens_list:
         return_offsets_mapping=True  # necesario para word_ids()
     )
 
-    # ⚠️ Solo pasar input_ids y attention_mask (no offset_mapping)
+    # Solo pasar input_ids y attention_mask (no offset_mapping)
     inputs = {k: v for k, v in encoding.items() if k in ["input_ids", "attention_mask", "token_type_ids"]}
     with torch.no_grad():
         outputs = model(**inputs)
