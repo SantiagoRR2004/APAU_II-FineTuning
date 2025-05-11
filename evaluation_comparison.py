@@ -1,63 +1,73 @@
 import json
-import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
+import torch
+from transformers import AutoTokenizer, AutoModelForTokenClassification
 from seqeval.metrics import (
     precision_score, recall_score, f1_score,
     classification_report as seqeval_classification_report
 )
-
 from predict_crf import predictWithSentences
-import IOB
-
 
 # --- Configuración ---
-csv_path = "data/ner-es.validOld.csv"
+jsonl_path = "data/ner-es.valid.json"
 crf_model_path = "crf.es.model"
-save_report_path = "evaluation_report.txt"
 hf_model_dir = "models/roberta-base-bne-ner"
+save_report_path = "evaluation_report.txt"
 
-# --- Leer dataset CSV IOB2 ---
-def load_iob_csv(path):
-    iob = IOB.IOB()
-    raw_sentences = iob.parse_file(path)
-    tokens = [[tok[0] for tok in sent] for sent in raw_sentences]
-    labels = [[tok[1] if len(tok) > 1 else "O" for tok in sent] for sent in raw_sentences]
-    return tokens, labels
+# --- Cargar datos desde JSONL ---
+def load_jsonl(path):
+    tokens_list, labels_list = [], []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            data = json.loads(line)
+            tokens_list.append(data["tokens"])
+            labels_list.append(data["labels"])
+    return tokens_list, labels_list
 
-tokens_list, true_labels = load_iob_csv(csv_path)
+tokens_list, true_labels = load_jsonl(jsonl_path)
 
 # --- CRF Predictions ---
-# Convertimos tokens a estructura [(token,), (token,), ...] para evitar etiquetas preexistentes
 crf_input = [[(token,) for token in sentence] for sentence in tokens_list]
 crf_preds_tuples = predictWithSentences(crf_input, crf_model_path)
 pred_labels_crf = [[label for _, label in sent] for sent in crf_preds_tuples]
 
-# --- Hugging Face fine-tuned model ---
-model = AutoModelForTokenClassification.from_pretrained(hf_model_dir)
+# --- Hugging Face Model y Tokenizer ---
 tokenizer = AutoTokenizer.from_pretrained(hf_model_dir)
-ner_pipeline = pipeline("ner", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
+model = AutoModelForTokenClassification.from_pretrained(hf_model_dir)
+model.eval()
 
 # --- Hugging Face predictions ---
 pred_labels_ft = []
-for tokens in tokens_list:
-    text = " ".join(tokens)
-    preds = ner_pipeline(text)
-    sentence_labels = ["O"] * len(tokens)
 
-    for ent in preds:
-        word = ent["word"]
-        label = ent["entity_group"]
-        iob_label = "B-" + label if label != "O" else "O"
-        for i, token in enumerate(tokens):
-            if sentence_labels[i] == "O" and word.lower() in token.lower():
-                sentence_labels[i] = iob_label
-                break
+for tokens in tokens_list:
+    encoding = tokenizer(
+        tokens,
+        is_split_into_words=True,
+        return_tensors="pt",
+        truncation=True,
+        return_offsets_mapping=True  # necesario para word_ids()
+    )
+
+    # ⚠️ Solo pasar input_ids y attention_mask (no offset_mapping)
+    inputs = {k: v for k, v in encoding.items() if k in ["input_ids", "attention_mask", "token_type_ids"]}
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    predictions = torch.argmax(outputs.logits, dim=-1)
+    word_ids = encoding.word_ids()
+
+    sentence_labels = ["O"] * len(tokens)
+    for idx, word_idx in enumerate(word_ids):
+        if word_idx is not None:
+            pred_label_id = predictions[0][idx].item()
+            label = model.config.id2label[pred_label_id]
+            if label != "O" and sentence_labels[word_idx] == "O":
+                sentence_labels[word_idx] = label
 
     pred_labels_ft.append(sentence_labels)
 
-# --- Métricas globales ---
+# --- Evaluación ---
 metrics = {
     "Fine-tuned": {
         "f1": f1_score(true_labels, pred_labels_ft),
