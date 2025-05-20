@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 import torch
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from seqeval.metrics import (
-    precision_score, recall_score, f1_score,
-    classification_report as seqeval_classification_report
+    precision_score,
+    recall_score,
+    f1_score,
+    classification_report as seqeval_classification_report,
 )
 from predict_crf import predictWithSentences
 
@@ -14,6 +16,7 @@ jsonl_path = "data/ner-es.valid.json"
 crf_model_path = "crf.es.model"
 hf_model_dir = "models/roberta-base-bne-ner"
 save_report_path = "evaluation_report.txt"
+
 
 # --- Cargar datos desde JSONL ---
 def load_jsonl(path):
@@ -24,6 +27,7 @@ def load_jsonl(path):
             tokens_list.append(data["tokens"])
             labels_list.append(data["labels"])
     return tokens_list, labels_list
+
 
 tokens_list, true_labels = load_jsonl(jsonl_path)
 
@@ -46,11 +50,15 @@ for tokens in tokens_list:
         is_split_into_words=True,
         return_tensors="pt",
         truncation=True,
-        return_offsets_mapping=True  # necesario para word_ids()
+        return_offsets_mapping=True,  # necesario para word_ids()
     )
 
     # Solo pasar input_ids y attention_mask (no offset_mapping)
-    inputs = {k: v for k, v in encoding.items() if k in ["input_ids", "attention_mask", "token_type_ids"]}
+    inputs = {
+        k: v
+        for k, v in encoding.items()
+        if k in ["input_ids", "attention_mask", "token_type_ids"]
+    }
     with torch.no_grad():
         outputs = model(**inputs)
 
