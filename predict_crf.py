@@ -5,7 +5,17 @@ from typing import List, Tuple
 
 
 class CRFFeatures:
-    def word2features(self, sent, i):
+    def word2features(self, sent:list, i:int) -> dict:
+        """
+        Extracts a set of features for a given word in a sentence for CRF tagging.
+
+        Args:
+            - sent (list): A list of tuples representing the sentence, where each tuple contains word-level information.
+            - i (int): The index of the word in the sentence for which to extract features.
+
+        Returns:
+            - dict: A dictionary of features for the word at position i.
+        """
         word = sent[i][0]
 
         features = {
@@ -43,10 +53,28 @@ class CRFFeatures:
 
         return features
 
-    def sent2features(self, sent):
+    def sent2features(self, sent:list) -> list:
+        """
+        Converts a sentence into a list of feature dictionaries, one per word.
+
+        Args:
+            - sent (list): A list of tuples representing the sentence.
+
+        Returns:
+            - list: A list of dictionaries, each containing features for a word in the sentence.
+        """
         return [self.word2features(sent, i) for i in range(len(sent))]
 
-    def sent2labels(self, sent):
+    def sent2labels(self, sent:list) -> list:
+        """
+        Extracts the labels from a sentence.
+
+        Args:
+            - sent (list): A list of tuples, where each tuple ends with the label.
+
+        Returns:
+            - list: A list of labels corresponding to each word in the sentence.
+        """
         return [token[-1] for token in sent]
 
 
