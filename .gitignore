@@ -6,3 +6,6 @@ data/*
 # except ner-es.trainOld.csv and ner-es.validOld.csv
 !ner-es.trainOld.csv
 !ner-es.validOld.csv
+
+# Ignore all files in the models directory
+models/*

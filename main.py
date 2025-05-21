@@ -1,5 +1,7 @@
 import os
 import IOB
+import subprocess
+from huggingface_hub import snapshot_download
 from typing import List, Tuple
 import labelPropagation
 from convert import convert_to_json
@@ -124,6 +126,37 @@ def process_file(file_path: str, output_path_prefix: str) -> None:
     labelPropagation.checkWithRegex(consensus, withLabels)
 
 
+def train(reTrain: bool = False) -> None:
+    currentDir = os.path.dirname(os.path.abspath(__file__))
+
+    if reTrain:
+        # Start the process
+        process = subprocess.Popen(
+            [
+                os.path.join(currentDir, "run_train.sh"),
+                "PlanTL-GOB-ES/roberta-base-bne",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+
+        # Print each line as it comes
+        for line in process.stdout:
+            print(line, end="")
+
+        # Wait for the process to complete
+        process.wait()
+
+    else:
+        snapshot_download(
+            repo_id="daor95/APAU_II-3",
+            local_dir=os.path.join(currentDir, "models", "roberta-base-bne-ner"),
+            repo_type="model",
+        )
+
+
 if __name__ == "__main__":
     currentDir = os.path.dirname(os.path.abspath(__file__))
 
@@ -147,3 +180,6 @@ if __name__ == "__main__":
 
     # Convertir a JSONL
     convert_to_json(valid_csv, valid_json)
+
+    # Download or train the model
+    train()
