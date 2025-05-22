@@ -9,3 +9,6 @@ data/*
 
 # Ignore all files in the models directory
 models/*
+
+# Other files
+evaluation_report.txt

@@ -3,8 +3,9 @@ import IOB
 import subprocess
 from huggingface_hub import snapshot_download
 from typing import List, Tuple
-import labelPropagation
 from convert import convert_to_json
+import labelPropagation
+import evaluation_comparison
 
 
 def printPercentages(sentences: List[List[Tuple[str, str]]]) -> None:
@@ -183,3 +184,6 @@ if __name__ == "__main__":
 
     # Download or train the model
     train()
+
+    # Evaluate the model
+    evaluation_comparison.makeReport()
