@@ -2,6 +2,7 @@ import argparse
 import chardet
 import json
 import IOB
+import sys
 
 
 def parse_args():
