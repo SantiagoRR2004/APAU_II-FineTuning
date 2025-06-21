@@ -3,7 +3,7 @@ import IOB
 import subprocess
 from huggingface_hub import snapshot_download
 from typing import List, Tuple
-from convert import convert_to_json
+import convert
 import labelPropagation
 import evaluation_comparison
 
@@ -172,15 +172,23 @@ if __name__ == "__main__":
         train_csv[:-4],  # quita .csv para usar como prefijo
     )
 
+    # Check encoding
+    convert.checkEncoding(train_csv)
+    convert.checkUTF8(train_csv)
+
     # Convertir a JSONL
-    convert_to_json(train_csv, train_json)
+    convert.convert_to_json(train_csv, train_json)
 
     process_file(
         os.path.join(currentDir, "data", "ner-es.validOld.csv"), valid_csv[:-4]
     )
 
+    # Check encoding
+    convert.checkEncoding(valid_csv)
+    convert.checkUTF8(valid_csv)
+
     # Convertir a JSONL
-    convert_to_json(valid_csv, valid_json)
+    convert.convert_to_json(valid_csv, valid_json)
 
     # Download or train the model
     train()

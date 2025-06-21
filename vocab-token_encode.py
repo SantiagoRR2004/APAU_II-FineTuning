@@ -1,5 +1,3 @@
-import io
-
 for path in [
     "models/roberta-base-bne-ner/vocab.json",
     "models/roberta-base-bne-ner/tokenizer.json",
